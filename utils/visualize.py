@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
-import numpy as np
+from utils.analyze_graph import compute_misinformation_risk
 
 
 def assign_colors(G: nx.Graph, page_type: dict) -> tuple:
@@ -63,62 +63,18 @@ def sample_by_page_type(G: nx.Graph, page_type: dict, pr: int, k_per_type: int=1
     sampled = []
     nodes_by_type = {}
 
-    # 
+    # Groups all nodes by category type
     for node in G.nodes():
         if node in page_type:
             t = page_type[node]
             nodes_by_type.setdefault(t, []).append(node)
 
-    # 
+    # Sort and sample top nodes for each category type
     for t, nodes in nodes_by_type.items():
         ranked = sorted(nodes, key=lambda n: pr[n], reverse=True)
         sampled.extend(ranked[:k_per_type])
 
     return sampled
-
-
-def misinformation_risk_assessment(G: nx.Graph) -> dict:
-    """
-    Returns the calculated risk score associated with each node in the provided graph.
-
-    Args:
-        G: The graph whose nodes are to be assessed for risk.
-    """
-    # Nodes with a high pagerank are superspreaders
-    pr = nx.pagerank(G)
-    pr_vals = list(pr.values())
-    # Nodes with high core count indicate highly dense and connected subgraph
-    core_nums = nx.core_number(G)
-    max_core = max(core_nums.values())
-    # Represents nodes which act as a bottleneck to other subcommunities 
-    articulation = set(nx.articulation_points(G))
-    # Represents edges which act as a gateways to other communities
-    bridges = set(nx.bridges(G))
-    # High CC implies tight community and echo chamber
-    clust_coef = nx.clustering(G)
-    # Nodes with high BC act as gatekeepers
-    btw = nx.betweenness_centrality(G, k=min(500, G.number_of_nodes()))
-    nth_percentile = np.percentile(list(btw.values()), 90)
-
-    risk_scores = {}
-
-    for n in G.nodes():
-        score = 0
-
-        if clust_coef[n] > 0.5:
-            score += 1
-        if pr[n] > np.mean(pr_vals) + np.std(pr_vals):
-            score += 2
-        if btw[n] > nth_percentile:
-            score += 2
-        if n in articulation:
-            score += 2
-        if core_nums[n] == max_core:
-            score += 3
-        
-        risk_scores[n] = score
-
-    return risk_scores
 
 
 def visualize_colored_sample(G: nx.Graph, sampled_nodes: list, color_map: list, type_to_color: dict, title: str):
@@ -214,7 +170,7 @@ def color_nodes_by_risk(G: nx.Graph) -> list:
     Args:
         G: The graph which is to be colored based on risk.
     """
-    risk_scores = misinformation_risk_assessment(G)
+    risk_scores = compute_misinformation_risk(G)
     unique_types = ["0", "1", "2", "≥ 3"]
     palette = ["tab:green", "#FFEA00", "tab:orange", "tab:red"]
     color_map = {}
