@@ -2,6 +2,7 @@ import argparse
 import sys
 import networkx as nx
 import pandas as pd
+import numpy as np
 from utils import file_exists, has_file_extension, file_empty, remove_trailing_digits, validate_color, visualize_graph
 
 
@@ -52,6 +53,11 @@ def parse_args() -> dict:
         type=int,
         default=500,
         help="The number of nodes to be plotted."
+    )
+    parser.add_argument(
+        "--risk_assessment",
+        action="store_true",
+        help="Colors nodes based on risk score."
     )
 
     # Returns dictionary of the parsed arguments
@@ -124,6 +130,7 @@ def main():
     color = params["color"]
     title = params["title"]
     sample_size = params["sample_size"]
+    risk_assessment = params["risk_assessment"]
 
     G = None
 
@@ -133,13 +140,17 @@ def main():
 
     if csv_file:
         G = read_csv_data(csv_file)
+
+        # Remove self-loops
+        G.remove_edges_from(nx.selfloop_edges(G))
         
         # Displays multiple communities with color-coding
         if "facebook_large" in csv_file:
-            visualize_graph(G, title, sample_size, color_code=True)
+            visualize_graph(G, title, sample_size, color_code=True, risk_assessment=risk_assessment)
         # Displays single community with uniform color
         else:
-            visualize_graph(G, title, sample_size, color=color)
+            visualize_graph(G, title, sample_size, color=color, risk_assessment=risk_assessment)
+
     
     # Check to ensure .csv graph data is given
     if not G:
