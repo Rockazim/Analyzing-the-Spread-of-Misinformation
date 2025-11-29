@@ -201,3 +201,44 @@ def print_summary(summary: dict):
         for key, val in items.items():
             print(f"{key}: {val}")
 
+
+def get_most_influential_node(G: nx.Graph, risk_scores: dict=None, pr: dict=None, deg: dict=None, btw: dict=None) -> int:
+    """
+    Identifies and returns the single most influential node in the graph.
+
+    Args:
+        G: The graph from which the influential node will be selected.
+        risk_scores: Mapping of node-to-risk score, typically computed using
+            `compute_misinformation_risk()`.
+        pr: Mapping of node-PageRank value.
+        deg: Mapping of node-to-degree.
+        btw: Mapping of node-to-betweenness-centrality..
+    """
+    # Precompute metrics if not provided
+    if pr is None:
+        pr = nx.pagerank(G)
+    if deg is None:
+        deg = nx.degree(G)
+    if btw is None:
+        btw = nx.betweenness_centrality(G, k=min(200, G.number_of_nodes()))
+    max_risk = max(risk_scores.values())
+    candidates = [ n for n, s in risk_scores.items() if s == max_risk ]
+
+    def sort_key(n):
+        """
+        Prioritizes nodes in order of risk score, pagerank, degree, and betweeness.
+
+        Args:
+            n: The candidate node to be sorted.
+        """
+        return (
+            risk_scores[n],
+            pr[n],
+            deg[n],
+            btw[n],
+            -int(n) if str(n).isdigit() else n  # deterministic tie-breaker
+        )
+    
+    top_node = max(candidates, key=sort_key)
+    return top_node
+

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
-from utils.analyze_graph import compute_misinformation_risk, build_risk_summary, print_summary
+from utils.analyze_graph import compute_misinformation_risk, build_risk_summary, print_summary, get_most_influential_node
 
 
 def assign_colors(G: nx.Graph, page_type: dict) -> tuple:
@@ -197,13 +197,16 @@ def color_nodes_by_risk(G: nx.Graph) -> list:
             return "tab:green"
         else:
             print("Error: Negative value detected!")
-            return "tab:blue"
+            return "tab:purple"
             
     for node, risk_score in risk_scores.items():
         color_map[node] = assign_risk_color(risk_score)
 
     summary = build_risk_summary(G, risk_scores)
     print_summary(summary)
+    
+    riskiest_node = get_most_influential_node(G, risk_scores)
+    color_map[riskiest_node] = "tab:cyan"
 
     return color_map, type_to_color
 
