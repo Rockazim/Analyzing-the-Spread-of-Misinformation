@@ -244,4 +244,4 @@ This project analyzes Facebook Page–Page networks to identify structural vulne
 
 Using a Linear Threshold cascade model, we simulate how misinformation spreads through the network from a high-risk source node. The cascade demonstrates the importance of network structure in enabling rapid information diffusion through peer influence.
 
-The *dynamic blocking intervention demonstrates that reactive moderation blocking high-degree spreaders as they are detected can dramatically reduce cascade spread, providing a realistic simulation of how platforms can contain misinformation in real-time.
+The dynamic blocking intervention demonstrates that reactive moderation blocking high-degree spreaders as they are detected can dramatically reduce cascade spread, providing a realistic simulation of how platforms can contain misinformation in real-time.
